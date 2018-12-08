@@ -1,0 +1,208 @@
+---
+title: "Practicing Exploratory Data Analysis in R"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+# **Exploratory Data Analysis of the diamonds dataset in ggplot**
+
+Initializing the *ggplot* library. 
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+**Visualing the distribution of variables**
+
+
+Let's start with understanding the distribution of variables. In order to understand the distribution of variables we can visualize them. 
+
+I'll start by understanding the distribution of the categorical variable 'cut' in the data set using a bar plot. 
+
+
+*Visualizing the distribution of a variable depends on the type of the variable. A **categorical** variable can be visualized using **bar plot** and a **continuous** variable can ve visualized using a **histogram** *  
+
+**Visualizing a categorical variable**
+```{r}
+ggplot(data = diamonds) + geom_bar(mapping = aes(x=cut))
+```
+
+The height of the bars display how many observations occurred under each category in the variable 'cut'. This can also be done using the count command of dplyr. 
+
+```{r}
+diamonds %>%
+  count(cut)
+```
+
+From the results above, we can notice that maximum number of diamonds were ideally cut. 
+
+
+**Visualizing a continuous variable **
+
+A continuous variable can be visualized using using an histogram. A continuous variable can take any value from negative to positive infinity. 
+
+```{r}
+ggplot(diamonds) + geom_histogram(mapping = aes(x=carat), binwidth = 0.1)
+```
+
+A histogram divides the x-axis into equally spaced bins and uses a bar to indicate how many times values from that bin has occurred in the data set. Here, width of the bins are defined by me as 0.1. Different bin width will result in different visualizations. 
+
+Frequency of occurrence in each bin can also be seen using the cut_width and count commands in dplyr. 
+
+```{r}
+diamonds %>%
+  count(cut_width(carat, 0.5))
+```
+
+From the tibble above, we can see that diamonds within the carat range 0.25 to 0.75 were present the maximum number of times in the data set. Also, maximum number of diamonds are below 3.25 carats, so let's slice the data set for all diamonds below 3 carats and create a smaller data set. 
+
+```{r}
+smaller_diamonds = diamonds %>%
+  filter(carat < 3.25)
+```
+
+Let's see the dimensions of the original diamonds data set and the smaller diamonds data set. 
+
+```{r}
+cat("dimension of the original dataset: ", dim(diamonds))
+
+cat("\n dimension of the smaller dataset: ", dim(smaller_diamonds))
+```
+So, in the smaller data set we have 11 samples lesser compared to the original data set.
+
+Let's see how the histogram of this data set will look like
+
+```{r}
+ggplot(data = smaller_diamonds) + geom_histogram(mapping = aes(x= carat), binwidth = 0.1)
+```
+
+This looks like a zoomed in version of the previous histogram because we have excluded all diamonds below  carat value of 3.25.
+
+Let's see the histogram of the carats of the diamonds according to their cut. This can be done by freqpoly. Freqpoly does the same operation as histogram but instead of displaying the counts with bars, it uses lines instead. 
+
+```{r}
+ggplot(data = smaller_diamonds) + geom_freqpoly(mapping = aes(x= carat, color=cut), binwidth = 0.1)
+```
+
+**Detecting outliers**
+
+Outliers are data points in our data set that doesn't seem to fit a pattern. Sometimes outliers may indicate error in data collection but not all outliers are errors. Sometimes outliers might indicate an important new information. So, before eliminating an outlier we need to justify the reason for elimination. 
+
+Let's take the variable 'z' from the data set which measures the diamond along the z axis. Let's visualize the distribution of this variable. 
+
+```{r}
+ggplot(diamonds) +
+  geom_histogram(mapping = aes(x = z), binwidth = 0.5)
+```
+In the plot above, even though the typical value of z varies from 2 to 6 in the x-axis, the x-axis coordinates in the image is from 0 to 30. This is one indication that there might be outliers which are not visible in the image. So, let's use the coord_cartesian command to zoom into the image along y-axis.
+
+```{r detecting outlier in variable Z}
+ggplot(diamonds) +
+  geom_histogram(mapping = aes(x= z), binwidth = 0.5) +
+  coord_cartesian(ylim = c(0,50))
+```
+
+In the previous image, the count in y-axis was around 12500, so we were not able to see the data point after 30. Now after zooming, we can clearly see two outliers, one around 8 and another after 30 in the x-axis.
+
+Let's see where those points are actually located. 
+
+```{r}
+diamonds %>%
+  filter(z >=6)
+```
+
+This seems to be a lot of data. But, we actually only see 2 points on the x-axis. So, let's refine it even further.
+
+```{r}
+diamonds %>%
+  filter(z >= 7)
+```
+
+YES!! Now we got only two points and they match with the visual information also. The value of the z variable of the first point is around 8 and the value of the second point is above 30. 
+
+x, y and z variables in the data set indicates the x, y and z axis dimensions of the diamond. Let's just assume that x is the length, y is the breadth and z is the height of the diamond. (This is just an assumption!)
+
+In order to see how different these two values of z are from the other values of z let's compare these two values (8.06 and 31.8) with the mean and median values of the variable z. 
+
+```{r}
+cat("mean of the variable z: ", mean(diamonds$z))
+cat("\n median of the variable z: ", median(diamonds$z))
+```
+
+As we see both the mean and median values of the variable is around 3.5. Now the 2 values we detected as outlier are 8.06 and 31.8 which are definitely very different from the mean and median value of the distribution. So, it's safe to consider these two values as errors. This is the reason why we eliminate these two values as outliers.  
+
+In the same way let's investigate the variable x and y also
+
+```{r}
+ggplot(data = diamonds) +
+  geom_histogram(mapping = aes(x=x), binwidth = 0.01) + 
+  coord_cartesian(ylim = c(0, 2.5))
+```
+
+Here we have a set of values in x which is either 0 or a little less than that. We can't see if clearly in visualization so let's filter those data points and see them as a table. 
+
+```{r}
+diamonds %>%
+  filter(x < 3)
+```
+
+As we can see, all the points of the x variable which is less than 3 is 0. Except one of these points, the values of the other two variables y and z are also 0. Since these 3 variables are the dimension measurements of the diamond and dimensions cannot be 0, we consider these 3 data points to be erroneous entries and that's the reason why we eliminate these as outliers.  
+
+```{r}
+ggplot(diamonds) +
+  geom_histogram(mapping = aes(x = price), binwidth = 60) 
+
+```
+As we can see in the image above, there are certainly 2 clusters of diamonds. The first cluster on the left has low cost and there are more of those diamonds in our dataset. The second cluster on the right has high and wide price range but the number of diamonds in those clusters are low. Let's zoom the image a little bit more to clearly visualize both those clusters. 
+
+```{r}
+ggplot(diamonds) +
+  geom_histogram(mapping = aes(x = price), binwidth =60) +
+  coord_cartesian(xlim = c(1000, 2000))
+```
+
+There it is!, there are no diamonds in the price range 1400 to 1600. 
+
+Another interesting question that I found about this data set on the internet is, why is there a huge difference between the number of diamonds which are 0.99 carat and 1 carat. 
+
+Let's analyze a little bit more about carats now. 
+
+
+```{r}
+diamonds %>%
+  filter(carat == 0.99)
+```
+There are about 23 diamonds which are 0.99 carats
+
+```{r}
+diamonds %>%
+  filter(carat == 1)
+```
+
+There are 1558 diamonds which are 1 carat in the data set. 
+
+
+In order to know a little more, let's summarize all the variables for diamonds of 0.99 and 1 carats. 
+
+
+```{r}
+diamonds %>%
+  group_by(carat) %>%
+  filter(carat == 0.99 | carat == 1) %>%
+  summarise(average_price = mean(price), num_of_diamonds = n(), how_many_colors = n_distinct(color),
+            how_many_cuts = n_distinct(cut), no_of_clarity = n_distinct(clarity))
+```
+
+```{r}
+diamonds %>%
+  group_by(carat) %>%
+  filter(carat == 0.99 | carat == 1) %>%
+  summarise(avg_depth = mean(depth), avg_x = mean(x),
+            avg_y = mean(y), avg_z = mean(z), avg_table = mean(table))
+```
+
+From the 2 results above, we can notice that there are no significant differences between any two variables except average_price and no_of_clarity. 
+
+From a quick internet search I realized that 0.99 carat diamonds are rarely made than 1 carat diamonds. Maybe that could be a reason why there are more 1 carat diamonds and less 0.99 carat diamonds.
+
