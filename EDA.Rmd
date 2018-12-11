@@ -1,5 +1,5 @@
 ---
-title: "Practicing Exploratory Data Analysis in R"
+title: "Exploring a data set in R"
 output:
   pdf_document: default
   html_notebook: default
@@ -140,7 +140,7 @@ ggplot(data = diamonds) +
   coord_cartesian(ylim = c(0, 2.5))
 ```
 
-Here we have a set of values in x which is either 0 or a little less than that. We can't see if clearly in visualization so let's filter those data points and see them as a table. 
+Here, we have a set of values in x which is either 0 or a little less. We can't see it clearly in visualization so let's filter those data points and see them as a table. 
 
 ```{r}
 diamonds %>%
@@ -206,3 +206,8 @@ From the 2 results above, we can notice that there are no significant difference
 
 From a quick internet search I realized that 0.99 carat diamonds are rarely made than 1 carat diamonds. Maybe that could be a reason why there are more 1 carat diamonds and less 0.99 carat diamonds.
 
+**How to deal with missing values**
+
+The best way to deal with missing values in a data set is to understand why those values went missing. This option may not be able in many cases, so, we can do either one of the two options below. 
+
+1. Drop the entire row with missing values, however, just because one value is missing, it doesn't mean that other values in the row are faulty. If we have a really faulty data set, by the time we end up dropping missing values, the entire data set is gone. 
