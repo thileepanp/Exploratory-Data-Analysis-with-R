@@ -206,8 +206,43 @@ From the 2 results above, we can notice that there are no significant difference
 
 From a quick internet search I realized that 0.99 carat diamonds are rarely made than 1 carat diamonds. Maybe that could be a reason why there are more 1 carat diamonds and less 0.99 carat diamonds.
 
-**How to deal with missing values**
+**How to deal with strange values aka outliers**
 
-The best way to deal with missing values in a data set is to understand why those values went missing. This option may not be able in many cases, so, we can do either one of the two options below. 
+The best way to deal with outliers in a data set is to understand why those values are outliers. This option may not be easy in many cases, so, we can do either one of the two options below. 
 
-1. Drop the entire row with missing values, however, just because one value is missing, it doesn't mean that other values in the row are faulty. If we have a really faulty data set, by the time we end up dropping missing values, the entire data set is gone. 
+1. Drop the entire row with strange values, however, just because one value is strange, it doesn't mean that other values in the row are faulty also. If we have a really faulty data set, by the time we end up dropping outliers, the entire data set will be empty. 
+
+First, let's display a set of stange values which needs to be eliminated. 
+
+```{r}
+diamonds %>%
+  filter(y <3 | y > 20)
+```
+
+As displayed in the table above, when y value is less than 3 the value of both x and z are 0 also. These 3 variables indicate the dimensions of the diamond. As we all know dimensions cannot be 0. So they need to be removed.
+
+When the value of y is above 20, the value is really huge. Let's see the median value of y first and then check if these 2 values are very different from the median. 
+
+```{r}
+diamonds %>%
+ summarise(Median_Y= median(y))
+```
+As we see the median value of y is 5.71 and the two values of y which are greater than 20 are 58.9 and 31.8 which are very different from the median value. 
+
+So, in conclusion, let's filter out all the values of y below 3 and above 20. 
+
+```{r}
+diamonds2 <- diamonds %>%
+  filter(between(y, 3, 20))
+
+```
+
+
+2. Instead of dropping the outlier values, we can replace them with NA.  NA values are easily usable in R, GGPLOT for example, doesn't include NAs while plotting, but it will warn after the plot that some NA values were dropped.
+
+```{r}
+diamonds2 <- diamonds %>%
+  mutate(y = ifelse(y <3 | y > 20, NA, y))
+```
+
+
