@@ -2,6 +2,7 @@
 title: "Exploring a data set in R"
 output:
   pdf_document: default
+  word_document: default
   html_notebook: default
 ---
 # **Exploratory Data Analysis of the diamonds dataset in ggplot**
@@ -13,7 +14,7 @@ library(ggplot2)
 library(dplyr)
 ```
 
-**Visualing the distribution of variables**
+##Visualing the distribution of variables#
 
 
 Let's start with understanding the distribution of variables. In order to understand the distribution of variables we can visualize them. 
@@ -23,7 +24,7 @@ I'll start by understanding the distribution of the categorical variable 'cut' i
 
 *Visualizing the distribution of a variable depends on the type of the variable. A **categorical** variable can be visualized using **bar plot** and a **continuous** variable can ve visualized using a **histogram** *  
 
-**Visualizing a categorical variable**
+##Visualizing a categorical variable##
 ```{r}
 ggplot(data = diamonds) + geom_bar(mapping = aes(x=cut))
 ```
@@ -38,7 +39,7 @@ diamonds %>%
 From the results above, we can notice that maximum number of diamonds were ideally cut. 
 
 
-**Visualizing a continuous variable **
+##Visualizing a continuous variable##
 
 A continuous variable can be visualized using using an histogram. A continuous variable can take any value from negative to positive infinity. 
 
@@ -85,7 +86,7 @@ Let's see the histogram of the carats of the diamonds according to their cut. Th
 ggplot(data = smaller_diamonds) + geom_freqpoly(mapping = aes(x= carat, color=cut), binwidth = 0.1)
 ```
 
-**Detecting outliers**
+##Detecting outliers##
 
 Outliers are data points in our data set that doesn't seem to fit a pattern. Sometimes outliers may indicate error in data collection but not all outliers are errors. Sometimes outliers might indicate an important new information. So, before eliminating an outlier we need to justify the reason for elimination. 
 
@@ -206,7 +207,7 @@ From the 2 results above, we can notice that there are no significant difference
 
 From a quick internet search I realized that 0.99 carat diamonds are rarely made than 1 carat diamonds. Maybe that could be a reason why there are more 1 carat diamonds and less 0.99 carat diamonds.
 
-**How to deal with strange values aka outliers**
+##How to deal with strange values aka outliers##
 
 The best way to deal with outliers in a data set is to understand why those values are outliers. This option may not be easy in many cases, so, we can do either one of the two options below. 
 
@@ -245,4 +246,64 @@ diamonds2 <- diamonds %>%
   mutate(y = ifelse(y <3 | y > 20, NA, y))
 ```
 
+## Covariation ##
+
+By analysing the distributions of variables we understood the behaviour within a variable. By covariation let's understand how two or more variables vary together. 
+
+### Variation between a categorical and a continuous variable ###
+
+Let's visualize how a categorical variable (cut) and a continuous variable (price) vary together. 
+
+```{r}
+ggplot(data = diamonds, mapping = aes(x = price)) + geom_freqpoly(mapping = aes(color = cut), binwidth = 500) 
+```
+
+Since diamonds of some cut are very large in number in the data set compared to others, it's hard to see the shape of diamonds of lower numbers. Let's try something else. 
+
+```{r}
+ggplot(data = diamonds, mapping = aes(x=price, y = ..density..)) + 
+  geom_freqpoly(mapping = aes(color = cut), binwidth = 500)
+```
+
+An interesting information that got revelead in this plot is that the price of fair cut diamonds whose quality is lower than ideal cut diamonds has a higher price than ideal cut diamonds. 
+
+
+###Boxplots###
+
+Boxplots are another useful method to compare the distribution of a variable. 
+
+```{r}
+ggplot(data = diamonds, mapping = aes(x=cut, y = price)) + geom_boxplot()
+```
+
+```{r}
+ggplot(data = diamonds, 
+       mapping = aes(x= reorder(cut, price, FUN = median) , y = price)) + geom_boxplot() +
+  coord_flip()
+
+```
+
+Now, it becomes a bit more clear, the median price of fair diamonds is higher than ideal and even very good diamonds. 
+
+### Variation between two categorical variables ###
+
+One method to find covariation between continuous variables is to count how many values are common between those two variables. This can be done through dplyr and also through ggplot visualizations. 
+
+1. dplyr method
+
+```{r}
+diamonds %>%
+  count(cut, color)
+```
+
+In the table above, we can see the number of diamonds which has a certain cut and color. 
+
+This table could be further visualized. 
+
+```{r}
+diamonds %>%
+  count(color, cut) %>%
+  ggplot(mapping = aes(x = color, y = cut)) + 
+  geom_tile(mapping = aes(fill = n))
+```
 
