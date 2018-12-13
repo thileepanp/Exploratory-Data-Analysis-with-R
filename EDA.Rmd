@@ -307,3 +307,30 @@ diamonds %>%
   geom_tile(mapping = aes(fill = n))
 ```
 
+From the visulatization above, we can see that ideally cut diamonds with color G were maximum in number. There are very less number of fair diamonds in all colors. 
+
+###Variation between two continuous variables ###
+
+The simplest method to  visualize the variation between two continuous variables is the scatter plot. 
+
+```{r}
+ggplot(data = diamonds, aes(x = carat, y = price)) + geom_point() 
+```
+
+ Let's reduce the point size so we can see clusters clearly. 
+ 
+```{r}
+ggplot(data = diamonds)  + geom_point(mapping = aes(x = carat, y = price), alpha = 1/100)  
+
+```
+ 
+ Now we can see the clusters even more clearly. 
+ 
+ Another option is to group one of the continuous variables into bins so it becomes like categorical variable and then we can use one of the methods we used above to find variation between categorical and continuous variables. 
+ 
+```{r}
+ggplot(data = smaller_diamonds, mapping = aes(x = carat, y = price)) + 
+  geom_boxplot(mapping = aes(group = cut_width(carat, 0.1)))
+```
+ 
+ 
